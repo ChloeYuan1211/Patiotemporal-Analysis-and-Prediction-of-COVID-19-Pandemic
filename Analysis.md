@@ -55,3 +55,14 @@ ggplot(covid_data, aes(x = Total)) +
 
 ```
 
+### 3.2 Data organization and visualization
+To effectively illustrate Shanghai's daily pandemic scenario during this period, I have visualized the daily pandemic data. I have read the pandemic district data for Shanghai, removed missing data, and defined the date data as a date type. I calculated the cumulative data for each district on a given day and reconstructed and sorted the data. I also calculated the daily new data for Shanghai and plotted a dynamic chart showing the cumulative growth of daily data for each district in Shanghai.
+
+![image](https://github.com/ChloeYuan1211/Patiotemporal-Analysis-and-Prediction-of-COVID-19-Pandemic/blob/main/image/figure%203%20Dynamic%20chart%20of%20daily%20cumulative%20growth%20data%20for%20each%20district%20in%20Shanghai..gif)
+
+From the chart, it can be observed that the Pudong New Area has the most severe pandemic situation, with the number of infected individuals far exceeding those in other districts. Minhang District follows with the next most serious situation; Huangpu District and Baoshan District have relatively faster growth rates. The districts with the mildest pandemic situations are Fengxian District, Chongming District, and Jinshan District, followed by Qingpu District and Changning District.
+
+![image](https://github.com/ChloeYuan1211/Patiotemporal-Analysis-and-Prediction-of-COVID-19-Pandemic/blob/main/image/figure%204%20Statistical%20plot%20of%20Cumulative%20Number%20of%20New%20Cases%20in%20Each%20District.png)
+This chart showed that from April 1st to May 4th, the cumulative increase in the number of infected individuals in Shanghai has exceeded 500000. The period from April 12th to April 20th saw the fastest growth, while the growth rate after April 25th was relatively small.
+
+
