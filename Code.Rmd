@@ -10,33 +10,33 @@ knitr::opts_chunk$set(echo = TRUE,warning = FALSE, message = FALSE)
 ```
 1.自相关分析和密度估计
 ```{r}
-# 导入所需的库
-library(tidyverse)  # 数据处理
-library(lubridate)  # 处理日期时间数据
-library(spdep)      # 空间数据处理
-library(ggplot2)    # 数据可视化
+# Import the required libraries
+library(tidyverse)  # For data manipulation
+library(lubridate)  # For handling date and time data
+library(spdep)      # For spatial data processing
+library(ggplot2)    # For data visualization
 library(readxl)
 library(tseries)
 library(xts)
 library(urca)
 library(forecast)
 shanghai <- read_excel("shanghai.xlsx")
-# 导入数据
+# Import the data
 
 colnames(shanghai)<-c("Date","Xuhui","Songjiang","Huangpu","Jiading","Hongkou","Yangpu","Putuo","Qingpu","Jingan", "Jinshan","Fengxian","Chongming","Changning","Baoshan","minhang","Pudong new","Total")
 covid_data <- shanghai
-# 将日期转换为日期格式
+# Convert the date column to date format
 covid_data$Date <- as.Date(covid_data$Date)
 
-# 进行自相关分析
-# 计算上海市确诊病例数的自相关系数
+# Perform autocorrelation analysis
+# Calculate the autocorrelation coefficients for the total number of confirmed cases in Shanghai
 acf_result <- acf(covid_data$Total, lag.max = 10, plot = FALSE)
 
-# 绘制自相关系数图
+# Plot the autocorrelation coefficients
 plot(acf_result, main = "Autocorrelation of Confirmed Cases in Shanghai", ylab = "Autocorrelation", xlab = "Lag")
 
-# 进行密度估计
-# 绘制上海市确诊病例数的密度估计图
+# Perform density estimation
+# Plot the density estimation for the total number of confirmed cases in Shanghai
 ggplot(covid_data, aes(x = Total)) +
   geom_density(fill = "blue", alpha = 0.5) +
   labs(title = "Density Estimation of Confirmed Cases in Shanghai", x = "Confirmed Cases", y = "Density")
