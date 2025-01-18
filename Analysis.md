@@ -220,3 +220,100 @@ plot5 <- plot5 + labs(title = "Shanghai Daily New Case Count Model Fitting Chart
         plot.tag = element_text(family = "Times New Roman"))
 plot5
 ```
+
+Then, we established an ARIMA model to predict potential new cases in the future.
+As the number of new cases is a piecewise function, we selected the second segment for modeling, which is the data from April 10th to May 4th.
+
+<div style="text-align: center">
+  <img src="https://github.com/ChloeYuan1211/Patiotemporal-Analysis-and-Prediction-of-COVID-19-Pandemic/blob/main/image/figure%207%20Time%20Series%20of%20Daily%20New%20Cases%20in%20Shanghai%20City.png" alt="figure6" style="width: 70%; height: auto;">
+</div><br>
+
+After analyzing the model, due to the unstable data, a first-order split was adopted and stationarity and white noise tests were conducted. After the data met the requirements, we began modeling.<br>
+View the autocorrelation (ACF) and partial autocorrelation (PACF) graphs of the split data.
+
+
+```r
+data <- shanghai[, c("Date", "Total")]
+data$Date <- as.Date(as.character(data$Date), "%Y-%m-%d")
+data1 <- data[10:34, ]
+
+# Time series plot
+ggplot(data1) +
+  geom_line(aes(Date, Total), size = 0.5) +
+  scale_x_date(date_labels = "%m-%d", date_breaks = "1 day") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 6)) +
+  labs(title = "Time Series of Daily New Cases in Shanghai",
+       x = "Date", 
+       y = "New Cases") +
+  theme(    
+    axis.line = element_line(colour = "black"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_blank(),
+    panel.background = element_blank())
+
+# Data processing
+ts <- xts(data1$Total, order.by = data1$Date)
+
+# ADF test for stationarity
+summary(ur.df(ts, type = "drift"))
+
+# Since the statistic equals 0.173, which is greater than the critical value of -1.96 at the 5% significance level, we can conclude that the series is non-stationary.
+# Model decomposition to make it stationary
+ts_diff <- diff(ts)
+ts_diff <- na.omit(ts_diff)
+summary(ur.df(ts_diff, type = "drift"))
+
+# Since the statistic equals -4.719, which is less than the critical value of -1.96 at the 5% significance level, we can conclude that the series is stationary.
+# Ljung-Box test
+Box.test(ts, type = "Ljung-Box", fitdf = 0, lag = 24)
+
+# From the above results, we know that the p-value of the test is less than 0.05, so we believe that the series is not a white noise series.
+# ACF and PACF plots
+acf(ts_diff)
+pacf(ts_diff)
+```
+
+<div style="text-align: center">
+  <img src="https://github.com/ChloeYuan1211/Patiotemporal-Analysis-and-Prediction-of-COVID-19-Pandemic/blob/main/image/figure%208%20ACF.png" alt="figure8" style="width: 70%; height: auto;">
+</div><br>
+
+<div style="text-align: center">
+  <img src="https://github.com/ChloeYuan1211/Patiotemporal-Analysis-and-Prediction-of-COVID-19-Pandemic/blob/main/image/figure%209%20PACF.png" alt="figure8" style="width: 70%; height: auto;">
+</div><br>
+
+We select model parameters based on ACF and PACF diagrams, that is, the ARIMA model is ARIMA(0,1,1).<br>
+Next, we tested the model residuals.
+
+<div style="text-align: center">
+  <img src="https://github.com/ChloeYuan1211/Patiotemporal-Analysis-and-Prediction-of-COVID-19-Pandemic/blob/main/image/figure%2010%20Model%20residuals%20tests.png" alt="figure8" style="width: 70%; height: auto;">
+</div><br>
+
+Due to the white noise p>0.05, it indicates that it is a residual white noise sequence, which is a purely random sequence. The model is valid and can be used for prediction.
+
+<div style="text-align: center">
+  <img src="https://github.com/ChloeYuan1211/Patiotemporal-Analysis-and-Prediction-of-COVID-19-Pandemic/blob/main/image/figure%2011%20Forecast%20of%20daily%20new%20population%20in%20Shanghai%20for%20the%20next%205%20days.png" alt="figure8" style="width: 70%; height: auto;">
+</div><br>
+
+Using the data from April 10th to May 4th and the obtained model, we can predict the daily increase in Shanghai's population for the next 5 days. From the image, it can be seen that the number of new additions will remain relatively low in the next 5 days, showing a downward trend.
+
+```r
+# Establish ARIMA model
+model <- auto.arima(diff(ts), stationary = TRUE, seasonal = FALSE)
+summary(model)
+
+# After first-order differencing, the model is ARIMA(0,0,1)
+# Determine the model for ts data
+model_new <- Arima(ts, order = c(0, 1, 1))
+model_new
+confint(model_new)
+
+# Model diagnostics
+tsdiag(model_new)
+# The white noise p-value is > 0.05, it indicates that the series is white noise, a purely random sequence.
+```
+```r
+# Dynamic forecasting to predict the next 5 days of data
+forecast(model_new, h = 5)
+plot(forecast(model_new, h = 5), col = 2)
+```
