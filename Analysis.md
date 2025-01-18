@@ -157,3 +157,66 @@ The test results for the regression equation and parameters are significant. Thi
 Based on the analysis above, it can be concluded that the piecewise function model fits data more accurately than the quadratic function model. Consequently, the turning point of the current epidemic in Shanghai is more likely to occur around April 10th, which is the first half of April. The daily increase in population reaches its peak before and after April 10th, and then progressively declining after that. Following the appearance of the turning point, there was a minor rebound on April 13, 16, and 22, but the daily increase progressively declined until April 28.
 
 ```r
+# Draw scatter plot
+plot4 <- ggplot(Fit_Data, aes(x=x, y=total)) + geom_point(size=3, colour="#f6d04d", alpha=0.7)
+plot4 <- plot4 + theme_light()
+
+plot4 <- plot4 + theme(text = element_text(family = "Songti SC"))
+
+plot4 <- plot4 + scale_y_continuous(breaks = seq(0, 30000, 5000)) +
+  scale_x_continuous(breaks = seq(0, 34, 2))
+plot4 <- plot4 + theme(axis.text.x = element_text(family = "Times New Roman"),
+                     axis.text.y = element_text(family = "Times New Roman"))
+plot4 <- plot4 + theme(axis.text.x = element_text(size=8, hjust = 0.5, vjust = 0.5))
+plot4 <- plot4 + labs(x=element_blank(), y="Daily New Cases",
+                    title = "Shanghai Daily New Case Count Statistics", tag = "Fig.4") +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 15),
+        plot.tag = element_text(family = "Times New Roman"))
+plot4
+```
+```r
+# Fit with quadratic model
+fit <- lm(total ~ x + I(x^2), data = Fit_Data)
+
+# View estimated parameters and significance test
+summary(fit)
+
+# Create function expression f
+f <- expression(y = -68.425 * x^2 + 2117.742 * x + 7427.475)
+df <- deriv(f, "x", function.arg = TRUE)
+```
+```r
+# Fit with piecewise function model
+model <- lm(total ~ x, data = Fit_Data)
+segmented_fit <- segmented(model, seg.Z = ~x, psi = 15)
+
+# View regression equation significance test
+summary(segmented_fit)
+
+slope(segmented_fit)
+intercept(segmented_fit)
+
+# Add function curve to the plot
+plot5 <- plot4 + stat_smooth(method = "lm", formula = y ~ poly(x, 2), se=TRUE, color="#716e77")
+plot5 <- plot5 + stat_smooth(method = "gam", formula = y ~ x + I((x - 10.335) * (x > 10.335)),
+                           se=TRUE, color="#4695d6") +
+  geom_vline(xintercept = 10.335, linetype = 2, color = "#4695d6")
+plot5 <- plot5 + annotate("text", x=26, y=25000, parse=TRUE,
+               label="y=-68.425*x^2+2117.742*x+7427.475",
+               size=4.5, family="Times New Roman", color="#716e77")
+plot5 <- plot5 + annotate("text", x=26, y=22500, parse=TRUE, label="R^2=0.8398",
+                        size=4.5, family="Times New Roman", color="#716e77")
+
+plot5 <- plot5 + annotate("text", x=6, y=5000, parse=TRUE,
+                        label="y1=2391.5*x+3829.8",
+                        size=4.5, family="Times New Roman", color="#4695d6")
+plot5 <- plot5 + annotate("text", x=6, y=2500, parse=TRUE,
+                        label="y2=-954.84*x+38415",
+                        size=4.5, family="Times New Roman", color="#4695d6")
+plot5 <- plot5 + annotate("text", x=6, y=0, parse=TRUE, label="R^2=0.8948",
+                        size=4.5, family="Times New Roman", color="#4695d6")
+plot5 <- plot5 + labs(title = "Shanghai Daily New Case Count Model Fitting Chart", tag = "Fig.5") +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 15),
+        plot.tag = element_text(family = "Times New Roman"))
+plot5
+```
