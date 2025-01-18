@@ -65,4 +65,71 @@ From the chart, it can be observed that the Pudong New Area has the most severe 
 ![image](https://github.com/ChloeYuan1211/Patiotemporal-Analysis-and-Prediction-of-COVID-19-Pandemic/blob/main/image/figure%204%20Statistical%20plot%20of%20Cumulative%20Number%20of%20New%20Cases%20in%20Each%20District.png)
 This chart showed that from April 1st to May 4th, the cumulative increase in the number of infected individuals in Shanghai has exceeded 500000. The period from April 12th to April 20th saw the fastest growth, while the growth rate after April 25th was relatively small.
 
+```{r}
+-- Import the required libraries
+library(reshape2)
+library(ggplot2)
+library(gganimate)
+library(gifski)
+library(rlang)
+library(dplyr)
+library(segmented)
+
+# Remove N/A data
+Raw_Data <- na.omit(covid_data)
+
+# Calculate the cumulative data for each district per day and save it as Acc_Raw_Data
+N <- dim(Raw_Data)[1]
+Acc_Raw_Data <- Raw_Data
+for(i in 2:N){Acc_Raw_Data[i,-1] <- Acc_Raw_Data[i-1,-1]+Raw_Data[i,-1]}
+
+# Use the melt function to tidy the data, name it Acc_Data, which contains three columns: Date, District and Cumulative Number
+Acc_Data <- melt(Acc_Raw_Data,id="Date")
+# Use the dplyr package to sort the data in descending order, generate a new variable rank, and save the tidied data as Acc_Data_New
+Acc_Data_New <- Acc_Data %>% group_by(Date) %>% arrange(desc(value)) %>% 
+  mutate(rank=row_number()) %>% ungroup()
+# Calculate the daily new cases in Shanghai total, and save the Date and total data as Fit_Data
+Raw_Data$total <- rowSums(Raw_Data[,2:17])
+Fit_Data <- data.frame(Date=Raw_Data$Date,x=c(1:34),total=Raw_Data$total)
+# Draw the dynamic bar chart of the cumulative increase in each district
+# Draw a simple static bar chart
+plot1 <- ggplot(Acc_Data_New,aes(x=desc(rank),y=value,group=variable))+
+  geom_bar(stat = "identity",aes(fill=as.factor(variable),color=as.factor(variable)))
+# Swap the horizontal and vertical axes
+plot1 <- plot1+coord_flip()
+# Add numerical labels
+plot1 <- plot1+geom_text(aes(label=value,vjust=0.5,hjust=0,color=factor(variable)))
+# Add district labels
+plot1 <- plot1+geom_text(aes(y=0,label=paste(variable,""),color=factor(variable)),
+                         vjust=0.5,hjust=1,size=4)
+# Set the chart format
+plot1 <- plot1+theme_classic()+
+  theme(axis.line = element_blank(),axis.ticks = element_blank(),
+        axis.title.x = element_blank(),axis.text.x = element_blank(),
+        axis.text.y=element_blank(),axis.title.y = element_blank(),
+        legend.position = "none",)
+# Generate the animation
+animate(plot1+transition_states(Date,transition_length = 2,state_length = 1),
+        renderer = gifski_renderer(),width=1100,height=500,nframes = 200,fps = 8)
+# Draw the static bar chart of the cumulative increase in each district
+
+colnames(Acc_Raw_Data)<-c("Date","Xuhui distric","Songjiang distric","Huangpu distric","Jiading distric","Hongkou distric","Yangpu distric","Putuo distric","Qingpu distric","Jingan distric", "Jinshan distric","Fengxian distric","Chongming distric","Changning distric","Baoshan distric","minhang distric","Pudong new distric","Total")
+Acc_Data <- melt(Acc_Raw_Data,id="Date")
+Acc_Data$Date<-as.Date(as.character(Acc_Data$Date),"%Y-%m-%d")
+plot2 <- ggplot(Acc_Data,aes(x=Date,y=value,fill=variable))+
+  scale_x_date(date_labels = "%m-%d", date_breaks = "10 days")
+plot2 <- plot2+geom_bar(stat = "identity",position = "stack")+facet_wrap(~variable)
+plot2 <- plot2+theme_light()
+
+# Set the legend format
+plot2 <- plot2+theme(legend.title = element_blank(),legend.text = element_text(size=10))
+# Set the horizontal and vertical labels, chart title, etc.
+plot2 <- plot2+labs(x="Date",y="Cumulative increase",
+                    title = "Statistical plot of Cumulative Number of New Cases in Each District of Shanghai City ",tag = "Fig.2")+
+  theme(plot.title = element_text(hjust = 0.5,face = "bold",size = 15))
+
+plot2
+
+```
+
 
